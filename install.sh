@@ -42,6 +42,15 @@ fi
 sudo cp ./etc/svnserve/* /etc/svnserve/
 sudo chown -R $user:nogroup /etc/svnserve/*
 sudo cp ./etc/init.d/svnserve /etc/init.d/svnserve
+sudo chown -R root:root /etc/init.d/svnserve
+sudo chmod 700 /etc/init.d/svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc0.d/K07svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc1.d/K07svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc2.d/S93svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc3.d/S93svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc4.d/S93svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc5.d/S93svnserve
+sudo ln -s /etc/init.d/svnserve /etc/rc6.d/K07svnserve
 
 sudo chown -R $user:nogroup "$svnroot"
 sudo -u $user svnadmin create --fs-type $fstype "$svnroot"
