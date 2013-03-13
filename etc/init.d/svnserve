@@ -8,11 +8,18 @@ function start() {
 function stop() {
   sudo crontab -u "$user" -r
   ps aux | grep "svnserve -d -[r]" > /tmp/svnserve.tmp
+  tag="false"
   while read line
   do
     echo $line >> /tmp/svnserve.pid
+    tag="true"
   done < /tmp/svnserve.tmp
   rm -rf /tmp/svnserve.tmp
+
+  if [ $tag = "false" ];then
+    return 0
+  fi
+
   while read line
   do
     pid=`echo "$line" | cut -d " " -f 2`
@@ -84,7 +91,7 @@ case "$1" in
     start
   ;;
   *)
-    echo "Usage: svnserver start|stop|restart" >&2
+    echo "Usage: service svnserver start|stop|restart" >&2
     exit 3
   ;;
 esac
