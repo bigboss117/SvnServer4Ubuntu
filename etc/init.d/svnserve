@@ -1,0 +1,93 @@
+#!/bin/bash
+
+function start() {
+  sudo -u "$user" svnserve -d -r "$svnroot"
+  sudo crontab -u "$user" /etc/svnserve/crontab 
+}
+
+function stop() {
+  sudo crontab -u "$user" -r
+  ps aux | grep "svnserve -d -[r]" > /tmp/svnserve.tmp
+  while read line
+  do
+    echo $line >> /tmp/svnserve.pid
+  done < /tmp/svnserve.tmp
+  rm -rf /tmp/svnserve.tmp
+  while read line
+  do
+    pid=`echo "$line" | cut -d " " -f 2`
+    kill -9 $pid
+    echo "kill $pid"
+  done < /tmp/svnserve.pid
+  rm -rf /tmp/svnserve.pid
+}
+
+#check account
+account=`whoami`
+if [ "$account" != "root" ]; then
+  echo "Error : please use \"root\" account."
+  exit 1
+fi
+
+#check conf
+svnconf="/etc/svnserve/svnserve.conf"
+if [ ! -f "$svnconf" ]; then
+  echo "Error : cannot find the conf file in path $svnconf."
+  exit 1
+fi
+user=""
+svnroot=""
+while read line
+do
+  key=`echo "$line" | cut -d "=" -f 1`
+  value=`echo "$line" | cut -d "=" -f 2`
+  if [ "$key" = "USER" ]; then
+    user="$value"
+  elif [ "$key" = "SVNROOT" ]; then
+    svnroot="$value"
+  elif [ "$key" != "" ]; then
+    echo "Warn : unknow key = \"$key\"."
+  fi
+done < "$svnconf"
+if [ "$user" = "" ]; then
+  echo "Error : missing \"USER\" in $svnconf."
+  exit 1
+else
+  echo "Set user to \"$user\"."
+fi
+if [ "$svnroot" = "" ]; then
+  echo "Error : missing \"SVNROOT\" in $svnconf."
+  exit 1
+else
+  echo "Set svnroot to \"$svnroot\"."
+fi
+if [ ! -d "$svnroot" ]; then
+  echo "Error : missing the repository in path $svnroot"
+  exit 1
+fi
+
+#handle
+case "$1" in
+  start)
+    echo "Start svnserve"
+    start
+  ;;
+  stop)
+    echo "Stop svnserve"
+    stop
+  ;;
+  status)
+  ;;
+  restart|reload|force_reload)
+    echo "Restart svnserve"
+    stop
+    start
+  ;;
+  *)
+    echo "Usage: svnserver start|stop|restart" >&2
+    exit 3
+  ;;
+esac
+
+:
+

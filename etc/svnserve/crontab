@@ -1,0 +1,1 @@
+*/10 * * * * /etc/svnserve/watchdog.sh
